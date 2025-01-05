@@ -5,10 +5,8 @@ from typing import List
 
 app = FastAPI()
 
-# Game state instance
 game_state = GameState()
 
-# Store active WebSocket connections
 clients: List[WebSocket] = []
 
 @app.get("/")
@@ -23,17 +21,13 @@ async def websocket_endpoint(websocket: WebSocket):
 
     try:
         while True:
-            # Receive player input (e.g., direction for paddle movement)
             data = await websocket.receive_json()
 
-            # Update paddle positions
             if "player" in data and "direction" in data:
                 game_state.update_paddle(data["player"], data["direction"])
 
-            # Update ball position
             game_state.update_ball_position()
 
-            # Broadcast updated game state to all connected clients
             state = {
                 "player1_y": game_state.player1_y,
                 "player2_y": game_state.player2_y,
@@ -41,7 +35,6 @@ async def websocket_endpoint(websocket: WebSocket):
                 "obstacles": game_state.obstacles,
             }
 
-            # Send the updated game state to each client
             for client in clients:
                 await client.send_json(state)
 
